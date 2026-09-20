@@ -10,6 +10,7 @@
   <header><div class="eyebrow">MINECRAFT JAVA EDITION 1.21.5</div><h1>Custom Item Gallery</h1><p>Resource pack to a ready-to-open gallery world. Everything is processed locally in your browser.</p></header>
   <section class="card"><div class="step"><b>1</b><div><h2>Resource pack</h2><p class="muted">Drop a ZIP containing <code>assets/&lt;namespace&gt;/items/</code>.</p></div></div>
     <label class="drop" id="packDrop"><input id="packInput" type="file" accept=".zip,application/zip"><strong>Drop Resource Pack ZIP</strong><span>or click to select</span></label>
+    <div id="devTools" class="dev-tools hidden"><span>DEV MODE</span><button id="loadTestPack" class="secondary">Load test_rp/TreeCube.zip</button><small id="devStatus">Development fixture is local and ignored by git.</small></div>
     <div id="packStats" class="stats hidden"></div>
   </section>
   <section class="card"><div class="step"><b>2</b><div><h2>Template</h2><p class="muted">Empty item frames become generator slots.</p></div></div>
