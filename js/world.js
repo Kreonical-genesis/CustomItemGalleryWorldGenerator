@@ -6,19 +6,12 @@ const floor=(n,d)=>Math.floor(n/d);
 const key=(x,z)=>`${x},${z}`;
 
 function packLongs(values,bits){
-  const out=[]; let word=0n,used=0;
-  for(const value of values){
-    let rest=bits;
-    while(rest){
-      const take=Math.min(rest,64-used);
-      const mask=(1n<<BigInt(take))-1n;
-      word|=(BigInt(value)&mask)<<BigInt(used);
-      used+=take; rest-=take;
-      if(used===64){out.push(BigInt.asIntN(64,word));word=0n;used=0}
-    }
+  const perLong=Math.floor(64/bits),out=new Array(Math.ceil(values.length/perLong)).fill(0n),mask=(1n<<BigInt(bits))-1n;
+  for(let index=0;index<values.length;index++){
+    const word=Math.floor(index/perLong),shift=(index%perLong)*bits;
+    out[word]|=(BigInt(values[index])&mask)<<BigInt(shift);
   }
-  if(used)out.push(BigInt.asIntN(64,word));
-  return out;
+  return out.map(value=>BigInt.asIntN(64,value));
 }
 
 function uuid(i){return ia([(0x40000000+i)|0,0,(0x80000000|(i*1103515245))|0,i|0],11)}
