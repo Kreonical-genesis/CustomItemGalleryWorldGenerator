@@ -82,8 +82,8 @@ export async function generateWorld(template,variants,settings,onProgress=()=>{}
   const gap=Number(settings.gap)||0,spacingX=template.size[0]+gap,spacingZ=template.size[2]+gap;
   let serial=1;
   for(let section=0;section<count;section++){
-    const ox=settings.layout==='line'?0:(section%perRow)*spacingX;
-    const oz=settings.layout==='line'?section*spacingZ:Math.floor(section/perRow)*spacingZ;
+    const ox=settings.layout==='line'?section*spacingX:(section%perRow)*spacingX;
+    const oz=settings.layout==='line'?0:Math.floor(section/perRow)*spacingZ;
     for(const source of template.blocks){const p=source.pos||source.Position,x=ox+p[0],y=100+p[1],z=oz+p[2];blocks.set(`${x},${z},${y}`,{x,y,z,block:template.palette[source.state||0]})}
     for(const source of template.entities){const slot=template.slots.indexOf(source),variant=slot>=0?variants[section*slots+slot]:null;if(slot>=0&&!variant)continue;const entity=cloneEntity(source,[ox,100,oz],variant,serial++);if(!entity)continue;const cx=floor(entity.Pos[0],16),cz=floor(entity.Pos[2],16);if(!entities.has(key(cx,cz)))entities.set(key(cx,cz),[]);entities.get(key(cx,cz)).push(entity)}
     onProgress(.1+.55*(section+1)/count,`Building gallery ${section+1}/${count}`);await new Promise(resolve=>setTimeout(resolve,0));
