@@ -14,7 +14,7 @@ function walk(node,constraints,leaves,path){
     for(let i=0;i<cases.length;i++){
       const entry=cases[i],when=entry.when??entry.value??entry.match;
       const condition={kind:'equals',property:node.property,component:node.component,value:when};
-      if(Array.isArray(when))for(const value of when)walk(entry.model||entry,[...constraints,{...condition,value}],leaves,`${path}.${i}`);
+      if(Array.isArray(when)){const name=componentName(node.component||node.property);if(name==='custom_name'||name==='display_name')walk(entry.model||entry,[...constraints,{...condition,value:when[0],aliases:when}],leaves,`${path}.${i}`);else for(const value of when)walk(entry.model||entry,[...constraints,{...condition,value}],leaves,`${path}.${i}`);}
       else walk(entry.model||entry,when===undefined?constraints:[...constraints,condition],leaves,`${path}.${i}`);
     }
     if(node.fallback)walk(node.fallback,[...constraints,{kind:'fallback',property:node.property,component:node.component}],leaves,path+'.fallback');
@@ -65,8 +65,11 @@ export function analyseDefinitions(entries){
       for(let index=0;index<leaves.length;index++){
         const leaf=leaves[index],components={};
         for(const constraint of leaf.constraints){const value=componentFor(constraint);if(value)Object.assign(components,value)}
-        const fingerprint=JSON.stringify([baseItem,leaf.model,components]);
-        if(!variants.some(item=>item.fingerprint===fingerprint))variants.push({baseItem,sourceDefinition:entry.name,model:leaf.model,components,metadata:{variant:index+1,path:leaf.path},fingerprint,supported:true});
+        const comparison={...components};delete comparison['minecraft:custom_name'];
+        const fingerprint=JSON.stringify([baseItem,leaf.model,comparison]);
+        const existing=variants.find(item=>item.fingerprint===fingerprint);
+        if(existing){if(leaf.constraints.some(constraint=>constraint.aliases))existing.metadata.aliases=[...(existing.metadata.aliases||[]),...leaf.constraints.find(constraint=>constraint.aliases).aliases.slice(1)];continue}
+        variants.push({baseItem,sourceDefinition:entry.name,model:leaf.model,components,metadata:{variant:index+1,path:leaf.path,aliases:leaf.constraints.find(constraint=>constraint.aliases)?.aliases?.slice(1)||[]},fingerprint,supported:true});
       }
     }catch(error){warnings.push({file:entry.name,reason:error.message})}
   }
