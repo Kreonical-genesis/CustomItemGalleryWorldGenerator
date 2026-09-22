@@ -37,8 +37,7 @@ function cloneEntity(source,origin,variant,serial){
   }
   if(id==='minecraft:armor_stand'&&variant){
     const stack=itemStack(variant);
-    entity.HandItems=[stack,stack];
-    entity.ArmorItems=[{}, {}, {}, stack];
+    entity.equipment={mainhand:stack,offhand:stack,head:stack};
   }
   return entity;
 }
