@@ -1,29 +1,68 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Custom Item Gallery</title><link rel="icon" type="image/svg+xml" href="favicon.svg"><link rel="stylesheet" href="css/app.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Custom Item Gallery</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/app.css">
 </head>
+
 <body>
-  <header class="topbar"><div class="brand"><span class="brand-icon">◆</span><strong>Custom Item Gallery</strong><span class="mode-badge">JAVA 1.21.5+</span></div><div class="header-right"><span class="author-text">Local resource pack analyzer</span><span class="privacy">NO UPLOAD</span></div></header>
+  <header class="topbar">
+    <div class="brand"><span class="brand-icon">◆</span><strong>Custom Item Gallery</strong><span
+        class="mode-badge">JAVA 1.21.5+</span></div>
+    <div class="header-right"><span class="author-text">by Kreo_gen &amp; chatGPT</span><a class="github-link" href="https://github.com/Kreo_gen/CustomItemGalleryWorldGenerator" target="_blank" rel="noopener" aria-label="Open source code on GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .7A11.3 11.3 0 0 0 8.4 22.8c.57.1.78-.25.78-.55v-2.1c-3.18.69-3.85-1.35-3.85-1.35-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.54-.29-5.2-1.27-5.2-5.67 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.12 1.18a10.8 10.8 0 0 1 5.68 0c2.16-1.49 3.12-1.18 3.12-1.18.62 1.58.23 2.75.11 3.04.73.8 1.18 1.83 1.18 3.08 0 4.41-2.67 5.37-5.22 5.65.41.35.77 1.04.77 2.1v3.11c0 .3.2.66.79.55A11.3 11.3 0 0 0 12 .7Z"/></svg></a></div>
+  </header>
   <main id="main-view">
     <aside class="sidebar-main">
       <div class="panel-header">1 · Resource Pack</div>
       <div class="panel-content">
-        <label class="drop-zone" id="packDrop"><input id="packInput" type="file" accept=".zip,application/zip"><span class="drop-zone-icon">⇩</span><strong>Drop Resource Pack ZIP</strong><span class="drop-zone-subtext">or click to select a local file</span><small>ZIP files are processed in your browser</small></label>
-        <div id="devTools" class="dev-tools hidden"><span>DEV MODE</span><button id="loadTestPack" class="secondary">Load test pack</button><small id="devStatus">Local fixture ignored by git.</small></div>
+        <label class="drop-zone" id="packDrop"><input id="packInput" type="file" accept=".zip,application/zip"><span
+            class="drop-zone-icon">⇩</span><strong>Drop Resource Pack ZIP</strong><span class="drop-zone-subtext">or
+            click to select a local file</span><small>ZIP files are processed in your browser</small></label>
+        <div id="devTools" class="dev-tools hidden"><span>DEV MODE</span><button id="loadTestPack"
+            class="secondary">Load test pack</button><small id="devStatus">Local fixture ignored by git.</small></div>
         <div id="packStats" class="stats-grid hidden"></div>
       </div>
       <div class="panel-header">2 · Template</div>
-      <div class="panel-content template-panel"><div id="templateCards" class="templates"></div><label class="upload"><input id="templateInput" type="file" accept=".nbt,application/octet-stream">＋ Upload custom template.nbt</label><div id="templateInfo" class="info">Loading templates...</div></div>
+      <div class="panel-content template-panel">
+        <div id="templateCards" class="templates"></div><label class="upload"><input id="templateInput" type="file"
+            accept=".nbt,application/octet-stream">＋ Upload custom template.nbt</label>
+        <div id="templateInfo" class="info">Loading templates...</div>
+      </div>
       <div class="panel-header">3 · World</div>
-      <div class="panel-content"><label class="field-label">World name<input id="worldName" value="Custom Item Gallery"></label><div id="summary" class="summary">Load a resource pack to calculate the gallery.</div><button id="generate" class="primary" disabled>GENERATE WORLD ZIP</button><div id="progress" class="progress hidden"><div><span id="progressText">Working...</span><b id="progressPct">0%</b></div><i><em id="progressBar"></em></i></div></div>
+      <div class="panel-content"><label class="field-label">World name<input id="worldName"
+            value="Custom Item Gallery"></label>
+        <div id="summary" class="summary">Load a resource pack to calculate the gallery.</div><button id="generate"
+          class="primary" disabled>GENERATE WORLD ZIP</button>
+        <div id="progress" class="progress hidden">
+          <div><span id="progressText">Working...</span><b id="progressPct">0%</b></div><i><em
+              id="progressBar"></em></i>
+        </div>
+      </div>
       <footer>Everything is processed locally.<br>Your resource pack is never uploaded.</footer>
     </aside>
     <section class="workspace">
-      <div class="workspace-head"><div><div class="eyebrow">ANALYSIS RESULT</div><h1>Detected variants</h1><p>Resolved Item Model Definitions and generated ItemStack components.</p></div><div class="actions"><button id="downloadVariants" class="secondary">Download variants</button><button id="downloadProperties" class="secondary">Properties JSON</button><button id="debug" class="secondary">Debug report</button></div></div>
-      <div class="results-container"><input id="search" class="search" placeholder="Search namespace, item, model..."><div id="variants" class="variants"><p class="muted">No resource pack analysed yet.</p></div></div>
+      <div class="workspace-head">
+        <div>
+          <div class="eyebrow">ANALYSIS RESULT</div>
+          <h1>Detected variants</h1>
+          <p>Resolved Item Model Definitions and generated ItemStack components.</p>
+        </div>
+        <div class="actions"><button id="downloadVariants" class="secondary">Download variants</button><button
+            id="downloadProperties" class="secondary">Properties JSON</button><button id="debug" class="secondary">Debug
+            report</button></div>
+      </div>
+      <div class="results-container"><input id="search" class="search" placeholder="Search namespace, item, model...">
+        <div id="variants" class="variants">
+          <p class="muted">No resource pack analysed yet.</p>
+        </div>
+      </div>
     </section>
   </main>
   <script type="module" src="js/app.js"></script>
-</body></html>
+</body>
+
+</html>
