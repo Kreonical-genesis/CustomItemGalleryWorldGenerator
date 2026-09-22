@@ -3,6 +3,7 @@ import {readZip} from './zip.js';
 const typeOf=node=>node?.type?.replace(/^minecraft:/,'')||('model' in (node||{})?'model':null);
 const componentName=value=>String(value||'').replace(/^minecraft:/,'');
 const DEFAULT_TRIM_PATTERN='minecraft:silence';
+const isVanillaModel=node=>typeOf(node)==='model'&&typeof node.model==='string'&&node.model.startsWith('minecraft:');
 
 function walk(node,constraints,leaves,path){
   if(!node||typeof node!=='object')return;
@@ -18,7 +19,8 @@ function walk(node,constraints,leaves,path){
       if(Array.isArray(when)){const name=componentName(node.component||node.property);if(name==='custom_name'||name==='display_name')walk(entry.model||entry,[...constraints,{...condition,value:when[0],aliases:when}],leaves,`${path}.${i}`);else for(const value of when)walk(entry.model||entry,[...constraints,{...condition,value}],leaves,`${path}.${i}`);}
       else walk(entry.model||entry,when===undefined?constraints:[...constraints,condition],leaves,`${path}.${i}`);
     }
-    if(node.fallback)walk(node.fallback,[...constraints,{kind:'fallback',property:node.property,component:node.component}],leaves,path+'.fallback');
+    const rootFallback=path==='root'||path==='root.model';
+    if(node.fallback&&(!rootFallback||!isVanillaModel(node.fallback)))walk(node.fallback,[...constraints,{kind:'fallback',property:node.property,component:node.component}],leaves,path+'.fallback');
     return;
   }
   if(type==='condition'){
