@@ -41,6 +41,8 @@ function walk(node,constraints,leaves,path){
 function componentFor(constraint){
   const name=componentName(constraint.component||constraint.property),value=constraint.value;
   if(!name||constraint.kind==='fallback')return null;
+  if(name==='trim_material'&&value!==undefined)return {'minecraft:trim':{material:String(value),pattern:'minecraft:coast'}};
+  if(name==='trim_pattern'&&value!==undefined)return {'minecraft:trim':{material:'minecraft:quartz',pattern:String(value)}};
   if(name==='custom_model_data'){
     const data={floats:[],flags:[],strings:[],colors:[]};
     if(value&&typeof value==='object')for(const key of Object.keys(data))if(Array.isArray(value[key]))data[key]=value[key];
@@ -55,11 +57,19 @@ function componentFor(constraint){
   return null;
 }
 
+function collectProperties(node,usage,source){
+  if(!node||typeof node!=='object')return;
+  const property=node.property||node.predicate;
+  if(property){const key=String(property);if(!usage.has(key))usage.set(key,{property:key,components:new Set(),definitions:new Set()});usage.get(key).definitions.add(source);if(node.component)usage.get(key).components.add(String(node.component))}
+  if(node.component&&property){const key=String(property);if(!usage.has(key))usage.set(key,{property:key,components:new Set(),definitions:new Set()});usage.get(key).components.add(String(node.component))}
+  for(const value of Object.values(node))if(value&&typeof value==='object')Array.isArray(value)?value.forEach(child=>collectProperties(child,usage,source)):collectProperties(value,usage,source);
+}
+
 export function analyseDefinitions(entries){
-  const definitions=[],variants=[],warnings=[];
+  const definitions=[],variants=[],warnings=[],propertyUsage=new Map();
   for(const entry of entries.sort((a,b)=>a.name.localeCompare(b.name))){
     try{
-      const json=JSON.parse(new TextDecoder().decode(entry.data)),parts=entry.name.split('/'),namespace=parts[1],relative=parts.slice(3).join('/').replace(/\.json$/,''),baseItem=`${namespace}:${relative}`;
+      const json=JSON.parse(new TextDecoder().decode(entry.data)),parts=entry.name.split('/'),namespace=parts[1],relative=parts.slice(3).join('/').replace(/\.json$/,''),baseItem=`${namespace}:${relative}`;collectProperties(json,propertyUsage,entry.name);
       const leaves=[];walk(json,[],leaves,'root');if(!leaves.length)throw Error('No reachable model leaves');
       definitions.push({path:entry.name,baseItem,item:json});
       for(let index=0;index<leaves.length;index++){
@@ -73,7 +83,8 @@ export function analyseDefinitions(entries){
       }
     }catch(error){warnings.push({file:entry.name,reason:error.message})}
   }
-  return {definitions,variants,warnings};
+  const properties=[...propertyUsage.values()].map(item=>({property:item.property,components:[...item.components].sort(),definitions:[...item.definitions].sort()})).sort((a,b)=>a.property.localeCompare(b.property));
+  return {definitions,variants,warnings,properties};
 }
 
 export async function analysePack(buffer){
