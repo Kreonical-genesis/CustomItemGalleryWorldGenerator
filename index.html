@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Custom Item Gallery</title>
+  <title>Галерея кастомных предметов</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="css/app.css">
 </head>
@@ -17,26 +17,26 @@
   </header>
   <main id="main-view">
     <aside class="sidebar-main">
-      <div class="panel-header">1 · Resource Pack</div>
+      <div class="panel-header">1 · Ресурс-пак</div>
       <div class="panel-content">
         <label class="drop-zone" id="packDrop"><input id="packInput" type="file" accept=".zip,application/zip"><span
-            class="drop-zone-icon">⇩</span><strong>Drop Resource Pack ZIP</strong><span class="drop-zone-subtext">or
-            click to select a local file</span><small>ZIP files are processed in your browser</small></label>
-        <div id="devTools" class="dev-tools hidden"><span>DEV MODE</span><button id="loadTestPack"
-            class="secondary">Load test pack</button><small id="devStatus">Local fixture ignored by git.</small></div>
+            class="drop-zone-icon">⇩</span><strong>Перетащите ZIP ресурс-пака</strong><span class="drop-zone-subtext">или
+            нажмите, чтобы выбрать локальный файл</span><small>ZIP обрабатывается прямо в браузере</small></label>
+        <div id="devTools" class="dev-tools hidden"><span>РЕЖИМ РАЗРАБОТКИ</span><button id="loadTestPack"
+            class="secondary">Загрузить тестовый pack</button><small id="devStatus">Локальный fixture не попадает в git.</small></div>
         <div id="packStats" class="stats-grid hidden"></div>
       </div>
-      <div class="panel-header">2 · Template</div>
+      <div class="panel-header">2 · Шаблон</div>
       <div class="panel-content template-panel">
         <div id="templateCards" class="templates"></div><label class="upload"><input id="templateInput" type="file"
-            accept=".nbt,application/octet-stream">＋ Upload custom template.nbt</label>
-        <div id="templateInfo" class="info">Loading templates...</div>
+            accept=".nbt,application/octet-stream">＋ Загрузить свой template.nbt</label>
+        <div id="templateInfo" class="info">Загрузка шаблонов...</div>
       </div>
-      <div class="panel-header">3 · World</div>
-      <div class="panel-content"><label class="field-label">World name<input id="worldName"
-            value="Custom Item Gallery"></label>
-        <div id="summary" class="summary">Load a resource pack to calculate the gallery.</div><button id="generate"
-          class="primary" disabled>GENERATE WORLD ZIP</button>
+      <div class="panel-header">3 · Мир</div>
+      <div class="panel-content"><label class="field-label">Название мира<input id="worldName"
+            value="Галерея кастомных предметов"></label>
+        <div id="summary" class="summary">Загрузите ресурс-пак для расчёта галереи.</div><button id="generate"
+          class="primary" disabled>СОЗДАТЬ ZIP МИРА</button>
         <div id="progress" class="progress hidden">
           <div><span id="progressText">Working...</span><b id="progressPct">0%</b></div><i><em
               id="progressBar"></em></i>
@@ -47,17 +47,17 @@
     <section class="workspace">
       <div class="workspace-head">
         <div>
-          <div class="eyebrow">ANALYSIS RESULT</div>
-          <h1>Detected variants</h1>
-          <p>Resolved Item Model Definitions and generated ItemStack components.</p>
+          <div class="eyebrow">РЕЗУЛЬТАТ АНАЛИЗА</div>
+          <h1>Найденные варианты</h1>
+          <p>Обработанные Item Model Definitions и компоненты ItemStack.</p>
         </div>
-        <div class="actions"><button id="downloadVariants" class="secondary">Download variants</button><button
-            id="downloadProperties" class="secondary">Properties JSON</button><button id="debug" class="secondary">Debug
-            report</button></div>
+        <div class="actions"><button id="downloadVariants" class="secondary">Скачать варианты</button><button
+            id="downloadProperties" class="secondary">Properties JSON</button><button id="debug" class="secondary">Отчёт
+            отладки</button></div>
       </div>
-      <div class="results-container"><input id="search" class="search" placeholder="Search namespace, item, model...">
+      <div class="results-container"><input id="search" class="search" placeholder="Поиск namespace, предмета или модели...">
         <div id="variants" class="variants">
-          <p class="muted">No resource pack analysed yet.</p>
+          <p class="muted">Ресурс-пак ещё не проанализирован.</p>
         </div>
       </div>
     </section>

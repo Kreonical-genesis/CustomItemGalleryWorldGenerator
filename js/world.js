@@ -92,7 +92,7 @@ export async function generateWorld(template,variants,settings,onProgress=()=>{}
       const ox=groupIndex*lineSpacingX,oz=section*spacingZ;
       for(const source of template.blocks){const p=source.pos||source.Position,x=ox+p[0],y=100+p[1],z=oz+p[2];blocks.set(`${x},${z},${y}`,{x,y,z,block:template.palette[source.state||0]})}
       for(const source of template.entities){const slot=template.slots.indexOf(source),variant=slot>=0?group.variants[section*slots+slot]:null;if(slot>=0&&!variant)continue;const entity=cloneEntity(source,[ox,100,oz],variant,serial++);if(!entity)continue;const cx=floor(entity.Pos[0],16),cz=floor(entity.Pos[2],16);if(!entities.has(key(cx,cz)))entities.set(key(cx,cz),[]);entities.get(key(cx,cz)).push(entity)}
-      complete++;onProgress(.1+.55*complete/count,`Building ${group.title} ${section+1}/${groupSections}`);await new Promise(resolve=>setTimeout(resolve,0));
+      complete++;onProgress(.1+.55*complete/count,`Создание линии ${group.title}: ${section+1}/${groupSections}`);await new Promise(resolve=>setTimeout(resolve,0));
     }
   }
   const chunks=new Map(),entityChunks=new Map();
@@ -106,5 +106,5 @@ export async function generateWorld(template,variants,settings,onProgress=()=>{}
   const level={Data:{DataVersion:4325,version:19133,LevelName:settings.name,GameType:1,hardcore:0,Difficulty:0,SpawnX:2,SpawnY:108,SpawnZ:2,Time:6000n,LastPlayed:BigInt(Date.now()),generatorName:'flat',generatorVersion:1,WorldGenSettings:{bonus_chest:false,seed:1n,dimensions:{'minecraft:overworld':{type:'minecraft:overworld',generator:{type:'minecraft:flat',settings:{layers:[{block:{Name:'minecraft:bedrock'},height:1},{block:{Name:'minecraft:dirt'},height:2},{block:{Name:'minecraft:grass_block'},height:1}],biome:'minecraft:plains',lakes:false,features:false}}}}},GameRules:{doDaylightCycle:'false',doWeatherCycle:'false',doMobSpawning:'false'}}};
   files.push({name:'level.dat',data:await gzip(writeNBT(level))});
   const root=(settings.name||'Custom Item Gallery').replace(/[\\/:*?"<>|]/g,' ').trim().replace(/\s+/g,'_')||'CustomItemGallery';
-  const archiveFiles=files.map(file=>({...file,name:`${root}/${file.name}`}));onProgress(1,'Done');return {zip:writeZip(archiveFiles),sections:count,files:archiveFiles};
+  const archiveFiles=files.map(file=>({...file,name:`${root}/${file.name}`}));onProgress(1,'Готово');return {zip:writeZip(archiveFiles),sections:count,files:archiveFiles};
 }
