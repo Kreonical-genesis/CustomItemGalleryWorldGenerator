@@ -83,15 +83,18 @@ async function region(chunks){
 
 export async function generateWorld(template,variants,settings,onProgress=()=>{}){
   const blocks=new Map(),entities=new Map(),slots=template.slots.length;
-  const count=Math.ceil(variants.length/slots),perRow=settings.layout==='line'?count:Number(settings.perRow)||8;
-  const gap=Number(settings.gap)||0,spacingX=template.size[0]+gap,spacingZ=template.size[2]+gap;
+  const groups=(settings.groups&&settings.groups.length?settings.groups:[{id:'all',title:'All',variants}]).filter(group=>group.variants?.length);
+  const count=groups.reduce((total,group)=>total+Math.ceil(group.variants.length/slots),0),spacingZ=template.size[2],lineSpacingX=template.size[0]+4;
   let serial=1;
-  for(let section=0;section<count;section++){
-    const ox=settings.layout==='line'?0:(section%perRow)*spacingX;
-    const oz=settings.layout==='line'?section*spacingZ:Math.floor(section/perRow)*spacingZ;
-    for(const source of template.blocks){const p=source.pos||source.Position,x=ox+p[0],y=100+p[1],z=oz+p[2];blocks.set(`${x},${z},${y}`,{x,y,z,block:template.palette[source.state||0]})}
-    for(const source of template.entities){const slot=template.slots.indexOf(source),variant=slot>=0?variants[section*slots+slot]:null;if(slot>=0&&!variant)continue;const entity=cloneEntity(source,[ox,100,oz],variant,serial++);if(!entity)continue;const cx=floor(entity.Pos[0],16),cz=floor(entity.Pos[2],16);if(!entities.has(key(cx,cz)))entities.set(key(cx,cz),[]);entities.get(key(cx,cz)).push(entity)}
-    onProgress(.1+.55*(section+1)/count,`Building gallery ${section+1}/${count}`);await new Promise(resolve=>setTimeout(resolve,0));
+  let complete=0;
+  for(let groupIndex=0;groupIndex<groups.length;groupIndex++){
+    const group=groups[groupIndex],groupSections=Math.ceil(group.variants.length/slots);
+    for(let section=0;section<groupSections;section++){
+      const ox=groupIndex*lineSpacingX,oz=section*spacingZ;
+      for(const source of template.blocks){const p=source.pos||source.Position,x=ox+p[0],y=100+p[1],z=oz+p[2];blocks.set(`${x},${z},${y}`,{x,y,z,block:template.palette[source.state||0]})}
+      for(const source of template.entities){const slot=template.slots.indexOf(source),variant=slot>=0?group.variants[section*slots+slot]:null;if(slot>=0&&!variant)continue;const entity=cloneEntity(source,[ox,100,oz],variant,serial++);if(!entity)continue;const cx=floor(entity.Pos[0],16),cz=floor(entity.Pos[2],16);if(!entities.has(key(cx,cz)))entities.set(key(cx,cz),[]);entities.get(key(cx,cz)).push(entity)}
+      complete++;onProgress(.1+.55*complete/count,`Building ${group.title} ${section+1}/${groupSections}`);await new Promise(resolve=>setTimeout(resolve,0));
+    }
   }
   const chunks=new Map(),entityChunks=new Map();
   for(const block of blocks.values()){const cx=floor(block.x,16),cz=floor(block.z,16),rk=key(floor(cx,32),floor(cz,32));if(!chunks.has(rk))chunks.set(rk,new Map());if(!chunks.get(rk).has(key(cx,cz)))chunks.get(rk).set(key(cx,cz),[]);chunks.get(rk).get(key(cx,cz)).push(block)}
