@@ -2,6 +2,7 @@ import {readZip} from './zip.js';
 
 const typeOf=node=>node?.type?.replace(/^minecraft:/,'')||('model' in (node||{})?'model':null);
 const componentName=value=>String(value||'').replace(/^minecraft:/,'');
+const DEFAULT_TRIM_PATTERN='minecraft:silence';
 
 function walk(node,constraints,leaves,path){
   if(!node||typeof node!=='object')return;
@@ -41,7 +42,7 @@ function walk(node,constraints,leaves,path){
 function componentFor(constraint){
   const name=componentName(constraint.component||constraint.property),value=constraint.value;
   if(!name||constraint.kind==='fallback')return null;
-  if(name==='trim_material'&&value!==undefined)return {'minecraft:trim':{material:String(value),pattern:'minecraft:coast'}};
+  if(name==='trim_material'&&value!==undefined)return {'minecraft:trim':{material:String(value),pattern:DEFAULT_TRIM_PATTERN}};
   if(name==='trim_pattern'&&value!==undefined)return {'minecraft:trim':{material:'minecraft:quartz',pattern:String(value)}};
   if(name==='custom_model_data'){
     const data={floats:[],flags:[],strings:[],colors:[]};
