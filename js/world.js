@@ -80,16 +80,37 @@ async function region(chunks){
   return new Uint8Array([...(Array.from(header)),...([...records.values()].flatMap(record=>Array.from(record.data)))]);
 }
 
+function snbtString(value){return String(value).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ')}
+function navigationFiles(groups,template){
+  const centerX=Math.floor((template.size[0]-1)/2),centerZ=Math.floor((template.size[2]-1)/2),points=groups.map((group,index)=>({title:group.title,x:index*100,z:0}));
+  const pages=[];
+  for(let start=0;start<points.length;start+=6){
+    const slice=points.slice(start,start+6),parts=[{text:'Навигация по галерее\\n\\n',bold:true,color:'dark_aqua'}];
+    for(const point of slice)parts.push({text:`[ ${point.title} ]\\n`,color:'green',bold:true,underlined:true,click_event:{action:'run_command',command:`/trigger gallery_nav set ${points.indexOf(point)+1}`}},{text:`X ${point.x} Y 121 Z ${point.z}\\n\\n`,color:'gray'});
+    pages.push(JSON.stringify(parts));
+  }
+  const book=`give @s minecraft:written_book[minecraft:written_book_content={title:'Навигация',author:'Custom Item Gallery',pages:[${pages.map(page=>`'${snbtString(page)}'`).join(',')}]}]`;
+  const teleports=points.map((point,index)=>`execute as @a[scores={gallery_nav=${index+1}}] run tp @s ${point.x} 121 ${point.z}`).join('\n');
+  return [
+    {name:'datapacks/gallery_navigation/pack.mcmeta',data:new TextEncoder().encode(JSON.stringify({pack:{pack_format:71,description:'Custom Item Gallery navigation'}},null,2))},
+    {name:'datapacks/gallery_navigation/data/minecraft/tags/function/load.json',data:new TextEncoder().encode(JSON.stringify({values:['gallery:load']}))},
+    {name:'datapacks/gallery_navigation/data/minecraft/tags/function/tick.json',data:new TextEncoder().encode(JSON.stringify({values:['gallery:tick']}))},
+    {name:'datapacks/gallery_navigation/data/gallery/function/load.mcfunction',data:new TextEncoder().encode('scoreboard objectives add gallery_nav trigger\nscoreboard objectives add gallery_initialized dummy\n')},
+    {name:'datapacks/gallery_navigation/data/gallery/function/first_join.mcfunction',data:new TextEncoder().encode(`${book}\nscoreboard players set @s gallery_initialized 1\n`)},
+    {name:'datapacks/gallery_navigation/data/gallery/function/tick.mcfunction',data:new TextEncoder().encode(`execute as @a unless score @s gallery_initialized matches 1.. run function gallery:first_join\nscoreboard players enable @a gallery_nav\n${teleports}\nscoreboard players set @a[scores={gallery_nav=1..}] gallery_nav 0\n`)}
+  ];
+}
+
 export async function generateWorld(template,variants,settings,onProgress=()=>{}){
   const blocks=new Map(),entities=new Map(),slots=template.slots.length;
   const groups=(settings.groups&&settings.groups.length?settings.groups:[{id:'all',title:'All',variants}]).filter(group=>group.variants?.length);
-  const count=groups.reduce((total,group)=>total+Math.ceil(group.variants.length/slots),0),spacingZ=template.size[2],lineSpacingX=template.size[0]+4;
+  const count=groups.reduce((total,group)=>total+Math.ceil(group.variants.length/slots),0),spacingZ=template.size[2],centerX=Math.floor((template.size[0]-1)/2),centerZ=Math.floor((template.size[2]-1)/2);
   let serial=1;
   let complete=0;
   for(let groupIndex=0;groupIndex<groups.length;groupIndex++){
     const group=groups[groupIndex],groupSections=Math.ceil(group.variants.length/slots);
     for(let section=0;section<groupSections;section++){
-      const ox=groupIndex*lineSpacingX,oz=section*spacingZ;
+      const ox=groupIndex*100-centerX,oz=section*spacingZ-centerZ;
       for(const source of template.blocks){const p=source.pos||source.Position,x=ox+p[0],y=100+p[1],z=oz+p[2];blocks.set(`${x},${z},${y}`,{x,y,z,block:template.palette[source.state||0]})}
       for(const source of template.entities){const slot=template.slots.indexOf(source),variant=slot>=0?group.variants[section*slots+slot]:null;if(slot>=0&&!variant)continue;const entity=cloneEntity(source,[ox,100,oz],variant,serial++);if(!entity)continue;const cx=floor(entity.Pos[0],16),cz=floor(entity.Pos[2],16);if(!entities.has(key(cx,cz)))entities.set(key(cx,cz),[]);entities.get(key(cx,cz)).push(entity)}
       complete++;onProgress(.1+.55*complete/count,`Создание линии ${group.title}: ${section+1}/${groupSections}`);await new Promise(resolve=>setTimeout(resolve,0));
@@ -103,8 +124,9 @@ export async function generateWorld(template,variants,settings,onProgress=()=>{}
   for(const [rk,map] of chunks){const [rx,rz]=rk.split(',');files.push({name:`region/r.${rx}.${rz}.mca`,data:await region(map)})}
   for(const [rk,map] of entityChunks){const [rx,rz]=rk.split(',');files.push({name:`entities/r.${rx}.${rz}.mca`,data:await region(map)})}
   onProgress(.82,'Writing level.dat');
-  const level={Data:{DataVersion:4325,version:19133,LevelName:settings.name,GameType:1,hardcore:0,Difficulty:0,SpawnX:2,SpawnY:108,SpawnZ:2,Time:6000n,LastPlayed:BigInt(Date.now()),generatorName:'flat',generatorVersion:1,WorldGenSettings:{bonus_chest:false,seed:1n,dimensions:{'minecraft:overworld':{type:'minecraft:overworld',generator:{type:'minecraft:flat',settings:{layers:[{block:{Name:'minecraft:bedrock'},height:1},{block:{Name:'minecraft:dirt'},height:2},{block:{Name:'minecraft:grass_block'},height:1}],biome:'minecraft:plains',lakes:false,features:false}}}}},GameRules:{doDaylightCycle:'false',doWeatherCycle:'false',doMobSpawning:'false'}}};
+  const level={Data:{DataVersion:4325,version:19133,LevelName:settings.name,GameType:1,hardcore:0,Difficulty:0,SpawnX:0,SpawnY:121,SpawnZ:0,Time:6000n,LastPlayed:BigInt(Date.now()),generatorName:'flat',generatorVersion:1,WorldGenSettings:{bonus_chest:false,seed:1n,dimensions:{'minecraft:overworld':{type:'minecraft:overworld',generator:{type:'minecraft:flat',settings:{layers:[{block:{Name:'minecraft:bedrock'},height:1},{block:{Name:'minecraft:dirt'},height:2},{block:{Name:'minecraft:grass_block'},height:1}],biome:'minecraft:plains',lakes:false,features:false}}}}},GameRules:{doDaylightCycle:'false',doWeatherCycle:'false',doMobSpawning:'false'}}};
   files.push({name:'level.dat',data:await gzip(writeNBT(level))});
   const root=(settings.name||'Custom Item Gallery').replace(/[\\/:*?"<>|]/g,' ').trim().replace(/\s+/g,'_')||'CustomItemGallery';
+  files.push(...navigationFiles(groups,template));
   const archiveFiles=files.map(file=>({...file,name:`${root}/${file.name}`}));onProgress(1,'Готово');return {zip:writeZip(archiveFiles),sections:count,files:archiveFiles};
 }
