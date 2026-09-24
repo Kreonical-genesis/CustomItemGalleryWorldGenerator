@@ -4,6 +4,15 @@ const typeOf=node=>node?.type?.replace(/^minecraft:/,'')||('model' in (node||{})
 const componentName=value=>String(value||'').replace(/^minecraft:/,'');
 const DEFAULT_TRIM_PATTERN='minecraft:silence';
 const isVanillaModel=node=>typeOf(node)==='model'&&typeof node.model==='string'&&node.model.startsWith('minecraft:');
+function isVanillaOnly(node){
+  if(!node||typeof node!=='object')return true;
+  if(typeOf(node)==='model')return isVanillaModel(node);
+  if(typeOf(node)==='composite')return (node.models||node.children||[]).every(isVanillaOnly);
+  if(typeOf(node)==='select')return (node.cases||node.options||[]).every(entry=>isVanillaOnly(entry.model||entry))&&(!node.fallback||isVanillaOnly(node.fallback));
+  if(typeOf(node)==='condition')return (!node.on_true||isVanillaOnly(node.on_true))&&(!node.on_false||isVanillaOnly(node.on_false));
+  if(typeOf(node)==='range_dispatch')return (node.entries||node.ranges||[]).every(entry=>isVanillaOnly(entry.model||entry))&&(!node.fallback||isVanillaOnly(node.fallback));
+  return node.model?isVanillaOnly(node.model):false;
+}
 
 function walk(node,constraints,leaves,path){
   if(!node||typeof node!=='object')return;
@@ -20,7 +29,7 @@ function walk(node,constraints,leaves,path){
       else walk(entry.model||entry,when===undefined?constraints:[...constraints,condition],leaves,`${path}.${i}`);
     }
     const rootFallback=path==='root'||path==='root.model';
-    if(node.fallback&&(!rootFallback||!isVanillaModel(node.fallback)))walk(node.fallback,[...constraints,{kind:'fallback',property:node.property,component:node.component}],leaves,path+'.fallback');
+    if(node.fallback&&(!rootFallback||!isVanillaOnly(node.fallback)))walk(node.fallback,[...constraints,{kind:'fallback',property:node.property,component:node.component}],leaves,path+'.fallback');
     return;
   }
   if(type==='condition'){
