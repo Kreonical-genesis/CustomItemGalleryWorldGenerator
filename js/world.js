@@ -89,7 +89,7 @@ function navigationFiles(groups,template){
     for(const point of slice)parts.push({text:`[ ${point.title} ]\\n`,color:'green',bold:true,underlined:true,click_event:{action:'run_command',command:`/trigger gallery_nav set ${points.indexOf(point)+1}`}},{text:`X ${point.x} Y 121 Z ${point.z}\\n\\n`,color:'gray'});
     pages.push(JSON.stringify(parts));
   }
-  const book=`give @s minecraft:written_book[minecraft:written_book_content={title:'Навигация',author:'Custom Item Gallery',pages:[${pages.map(page=>`'${snbtString(page)}'`).join(',')}]}]`;
+  const book=`give @s minecraft:written_book[minecraft:written_book_content={pages:[${pages.map(page=>`{raw:'${snbtString(page)}'}`).join(',')}],author:'Custom Item Gallery',title:{raw:'Навигация'},resolved:1b}]`;
   const teleports=points.map((point,index)=>`execute as @a[scores={gallery_nav=${index+1}}] run tp @s ${point.x} 121 ${point.z}`).join('\n');
   return [
     {name:'datapacks/gallery_navigation/pack.mcmeta',data:new TextEncoder().encode(JSON.stringify({pack:{pack_format:71,description:'Custom Item Gallery navigation'}},null,2))},
