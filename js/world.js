@@ -81,7 +81,7 @@ async function region(chunks){
 }
 
 function navigationFiles(groups,template){
-  const centerX=Math.floor((template.size[0]-1)/2),centerZ=Math.floor((template.size[2]-1)/2),points=groups.map((group,index)=>({title:group.title,x:index*100,z:0}));
+  const points=groups.map((group,index)=>({title:group.title,x:index*100,z:0}));
   const quote=value=>JSON.stringify(String(value)),component=(value,options={})=>`{text:${quote(value)},${Object.entries(options).map(([key,item])=>`${key}:${key==='click_event'?item:typeof item==='string'?quote(item):item}`).join(',')}}`,pages=[];
   for(let start=0;start<points.length;start+=3){
     const slice=points.slice(start,start+3),parts=[quote(''),component('Навигация по галерее\n\n',{bold:true,color:'dark_aqua'})];
