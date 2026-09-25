@@ -82,14 +82,15 @@ async function region(chunks){
 
 function navigationFiles(groups,template){
   const points=groups.map((group,index)=>({title:group.title,x:index*100,z:0}));
+  const galleryY=100;
   const quote=value=>JSON.stringify(String(value)),component=(value,options={})=>`{text:${quote(value)},${Object.entries(options).map(([key,item])=>`${key}:${key==='click_event'?item:typeof item==='string'?quote(item):item}`).join(',')}}`,pages=[];
   for(let start=0;start<points.length;start+=3){
     const slice=points.slice(start,start+3),parts=[quote(''),component('Навигация по галерее\n\n',{bold:true,color:'dark_aqua'})];
-    for(const point of slice)parts.push(component(`[ ${point.title} ]\n`,{color:'green',bold:true,underlined:true,click_event:`{action:"run_command",command:${quote(`trigger gallery_nav set ${points.indexOf(point)+1}`)}}`}),component(`X ${point.x} Y 121 Z ${point.z}\n\n`,{color:'gray'}));
+    for(const point of slice)parts.push(component(`[ ${point.title} ]\n`,{color:'green',bold:true,underlined:true,click_event:`{action:"run_command",command:${quote(`trigger gallery_nav set ${points.indexOf(point)+1}`)}}`}),component(`X ${point.x} Y ${galleryY} Z ${point.z}\n\n`,{color:'gray'}));
     pages.push(`[${parts.join(',')}]`);
   }
   const book=`give @s minecraft:written_book[minecraft:written_book_content={pages:[${pages.join(',')}],author:"Custom Item Gallery",title:{raw:"Навигация"},resolved:true}]`;
-  const teleports=points.map((point,index)=>`execute as @a[scores={gallery_nav=${index+1}}] run tp @s ${point.x} 121 ${point.z}`).join('\n');
+  const teleports=points.map((point,index)=>`execute as @a[scores={gallery_nav=${index+1}}] run tp @s ${point.x} ${galleryY} ${point.z}`).join('\n');
   return [
     {name:'datapacks/gallery_navigation/pack.mcmeta',data:new TextEncoder().encode(JSON.stringify({pack:{pack_format:71,description:'Custom Item Gallery navigation'}},null,2))},
     {name:'datapacks/gallery_navigation/data/minecraft/tags/function/load.json',data:new TextEncoder().encode(JSON.stringify({values:['gallery:load']}))},
@@ -123,7 +124,7 @@ export async function generateWorld(template,variants,settings,onProgress=()=>{}
   for(const [rk,map] of chunks){const [rx,rz]=rk.split(',');files.push({name:`region/r.${rx}.${rz}.mca`,data:await region(map)})}
   for(const [rk,map] of entityChunks){const [rx,rz]=rk.split(',');files.push({name:`entities/r.${rx}.${rz}.mca`,data:await region(map)})}
   onProgress(.82,'Writing level.dat');
-  const level={Data:{DataVersion:4325,version:19133,LevelName:settings.name,GameType:1,hardcore:0,Difficulty:0,SpawnX:0,SpawnY:121,SpawnZ:0,Time:6000n,LastPlayed:BigInt(Date.now()),generatorName:'flat',generatorVersion:1,WorldGenSettings:{bonus_chest:false,seed:1n,dimensions:{'minecraft:overworld':{type:'minecraft:overworld',generator:{type:'minecraft:flat',settings:{layers:[{block:{Name:'minecraft:bedrock'},height:1},{block:{Name:'minecraft:dirt'},height:2},{block:{Name:'minecraft:grass_block'},height:1}],biome:'minecraft:plains',lakes:false,features:false}}}}},GameRules:{doDaylightCycle:'false',doWeatherCycle:'false',doMobSpawning:'false'}}};
+  const level={Data:{DataVersion:4325,version:19133,LevelName:settings.name,GameType:1,hardcore:0,Difficulty:0,SpawnX:0,SpawnY:100,SpawnZ:0,Time:6000n,LastPlayed:BigInt(Date.now()),generatorName:'flat',generatorVersion:1,WorldGenSettings:{bonus_chest:false,seed:1n,dimensions:{'minecraft:overworld':{type:'minecraft:overworld',generator:{type:'minecraft:flat',settings:{layers:[{block:{Name:'minecraft:bedrock'},height:1},{block:{Name:'minecraft:dirt'},height:2},{block:{Name:'minecraft:grass_block'},height:1}],biome:'minecraft:plains',lakes:false,features:false}}}}},GameRules:{doDaylightCycle:'false',doWeatherCycle:'false',doMobSpawning:'false'}}};
   files.push({name:'level.dat',data:await gzip(writeNBT(level))});
   const root=(settings.name||'Custom Item Gallery').replace(/[\\/:*?"<>|]/g,' ').trim().replace(/\s+/g,'_')||'CustomItemGallery';
   files.push(...navigationFiles(groups,template));
