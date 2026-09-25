@@ -80,16 +80,15 @@ async function region(chunks){
   return new Uint8Array([...(Array.from(header)),...([...records.values()].flatMap(record=>Array.from(record.data)))]);
 }
 
-function snbtString(value){return String(value).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' ')}
 function navigationFiles(groups,template){
   const centerX=Math.floor((template.size[0]-1)/2),centerZ=Math.floor((template.size[2]-1)/2),points=groups.map((group,index)=>({title:group.title,x:index*100,z:0}));
   const pages=[];
   for(let start=0;start<points.length;start+=6){
-    const slice=points.slice(start,start+6),parts=[{text:'Навигация по галерее\\n\\n',bold:true,color:'dark_aqua'}];
-    for(const point of slice)parts.push({text:`[ ${point.title} ]\\n`,color:'green',bold:true,underlined:true,click_event:{action:'run_command',command:`/trigger gallery_nav set ${points.indexOf(point)+1}`}},{text:`X ${point.x} Y 121 Z ${point.z}\\n\\n`,color:'gray'});
-    pages.push(JSON.stringify(parts));
+    const slice=points.slice(start,start+6),parts=['',{text:'Навигация по галерее\n\n',bold:true,color:'dark_aqua'}];
+    for(const point of slice)parts.push({text:`[ ${point.title} ]\n`,color:'green',bold:true,underlined:true,click_event:{action:'run_command',command:`trigger gallery_nav set ${points.indexOf(point)+1}`}},{text:`X ${point.x} Y 121 Z ${point.z}\n\n`,color:'gray'});
+    pages.push(parts);
   }
-  const book=`give @s minecraft:written_book[minecraft:written_book_content={pages:[${pages.map(page=>`{raw:'${snbtString(page)}'}`).join(',')}],author:'Custom Item Gallery',title:{raw:'Навигация'},resolved:1b}]`;
+  const book=`give @s minecraft:written_book[minecraft:written_book_content={pages:[${pages.map(page=>JSON.stringify(page)).join(',')}],author:"Custom Item Gallery",title:{raw:"Навигация"},resolved:true}]`;
   const teleports=points.map((point,index)=>`execute as @a[scores={gallery_nav=${index+1}}] run tp @s ${point.x} 121 ${point.z}`).join('\n');
   return [
     {name:'datapacks/gallery_navigation/pack.mcmeta',data:new TextEncoder().encode(JSON.stringify({pack:{pack_format:71,description:'Custom Item Gallery navigation'}},null,2))},
