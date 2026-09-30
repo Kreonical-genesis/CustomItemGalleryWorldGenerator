@@ -2,7 +2,7 @@
 
 Client-side инструмент для Minecraft Java Edition 1.21.5. Сайт локально анализирует resource pack, находит Item Model Definitions, создаёт варианты ItemStack и собирает готовый ZIP мира с галереей.
 
-Сайт проекта: https://example.com/custom-item-gallery
+Сайт проекта: https://kreonical-genesis.github.io/CustomItemGalleryWorldGenerator/
 
 Ссылка выше временная и будет заменена после публикации сайта.
 
