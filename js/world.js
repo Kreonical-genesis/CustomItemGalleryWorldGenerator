@@ -57,9 +57,10 @@ function chunkNBT(cx,cz,blocks){
     const bits=Math.max(4,Math.ceil(Math.log2(palette.length)));
     sections.push({Y:sy,block_states:{palette,data:ia(packLongs(values,bits),12)},biomes:{palette:['minecraft:plains']}});
   }
+  const blockEntities=blocks.filter(block=>block.nbt).map(block=>({...block.nbt,x:Math.floor(block.x),y:Math.floor(block.y),z:Math.floor(block.z)}));
   return {
     DataVersion:4325,xPos:cx,zPos:cz,yPos:-4,Status:'minecraft:full',sections,
-    block_entities:listTag(10,[]),
+    block_entities:listTag(10,blockEntities),
     Heightmaps:{MOTION_BLOCKING:ia(new Array(36).fill(0),12),WORLD_SURFACE:ia(new Array(36).fill(0),12)},
     isLightOn:ia(0,1),InhabitedTime:0n,structures:{starts:{},references:{}},
     PostProcessing:listTag(9,new Array(24).fill(listTag(3,[]))),
@@ -100,7 +101,7 @@ function navigationFiles(points){
 }
 
 function addTemplate(template,origin,variantForSlot,blocks,entities,serial){
-  for(const source of template.blocks){const p=source.pos||source.Position,x=origin[0]+p[0],y=origin[1]+p[1],z=origin[2]+p[2];blocks.set(`${x},${z},${y}`,{x,y,z,block:template.palette[source.state||0]})}
+  for(const source of template.blocks){const p=source.pos||source.Position,x=origin[0]+p[0],y=origin[1]+p[1],z=origin[2]+p[2];blocks.set(`${x},${z},${y}`,{x,y,z,block:template.palette[source.state||0],nbt:source.nbt})}
   for(const source of template.entities){const slot=template.slots.indexOf(source),variant=slot>=0?variantForSlot?.(slot):null;if(slot>=0&&variantForSlot&&!variant)continue;const entity=cloneEntity(source,origin,variant,serial.value++);if(!entity)continue;const cx=floor(entity.Pos[0],16),cz=floor(entity.Pos[2],16);if(!entities.has(key(cx,cz)))entities.set(key(cx,cz),[]);entities.get(key(cx,cz)).push(entity)}
 }
 
