@@ -3,7 +3,12 @@
   "templates": [
     {"file":"templates/item_frame/test.nbt","preview":"templates_preview/item_frame/test.gif","kind":"item_frame"},
     {"file":"templates/item_frame/ksepsp.nbt","preview":"templates_preview/item_frame/ksepsp.gif","kind":"item_frame"},
-    {"file":"templates/armor_stand/test.nbt","preview":"templates_preview/armor_stand/test.gif","kind":"armor_stand"}
+    {"file":"templates/item_frame/patya.nbt","preview":"templates_preview/item_frame/patya.gif","kind":"item_frame"},
+    {"file":"templates/armor_stand/test.nbt","preview":"templates_preview/armor_stand/test.gif","kind":"armor_stand"},
+    {"file":"templates/armor_stand/patya.nbt","preview":"templates_preview/armor_stand/patya.gif","kind":"armor_stand"}
   ],
-  "pavilions": []
+  "pavilions": [
+    {"file":"templates/item_frame/patya_pavilion.nbt","kind":"item_frame"},
+    {"file":"templates/armor_stand/patya_pavilion.nbt","kind":"armor_stand"}
+  ]
 }
