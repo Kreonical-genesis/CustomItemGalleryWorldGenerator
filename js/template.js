@@ -1,5 +1,63 @@
-import {parseNBT,writeNBT} from './nbt.js';
-export function builtinTemplate(){let blocks=[],palette=[{Name:'minecraft:stone'}];for(let y=0;y<4;y++)for(let x=0;x<12;x++)blocks.push({pos:[x,y,0],state:0});let entities=[];for(let x of [1,4,7,10])entities.push({id:'minecraft:item_frame',Pos:[x+.5,2.5,.03],blockPos:[x,2,0],Facing:2,ItemRotation:0,Fixed:1});return {size:[12,4,1],palette,blocks,entities,slots:entities,decorative:0}}
-function id(e){return e.id||e.nbt?.id||''}function empty(e){return !e.Item&&!e.nbt?.Item}
-export function readTemplate(bytes,kind='item_frame'){let n=parseNBT(bytes),t=n.value||n;let t2={size:t.size,palette:t.palette,blocks:t.blocks,entities:t.entities||[],kind};if(!Array.isArray(t2.size)||!t2.palette||!t2.blocks||!Array.isArray(t2.entities))throw Error('Template must contain size, palette, blocks and entities');let slots=kind==='armor_stand'?t2.entities.filter(e=>id(e)==='minecraft:armor_stand'):t2.entities.filter(e=>/item_frame|glow_item_frame$/.test(id(e))&&empty(e));return {...t2,slots,decorative:t2.entities.length-slots.length}}
-export function serializeTemplate(t){return writeNBT(t)}
+import { parseNBT, writeNBT } from "./nbt.js";
+export function builtinTemplate() {
+  let blocks = [],
+    palette = [{ Name: "minecraft:stone" }];
+  for (let y = 0; y < 4; y++)
+    for (let x = 0; x < 12; x++) blocks.push({ pos: [x, y, 0], state: 0 });
+  let entities = [];
+  for (let x of [1, 4, 7, 10])
+    entities.push({
+      id: "minecraft:item_frame",
+      Pos: [x + 0.5, 2.5, 0.03],
+      blockPos: [x, 2, 0],
+      Facing: 2,
+      ItemRotation: 0,
+      Fixed: 1,
+    });
+  return {
+    size: [12, 4, 1],
+    palette,
+    blocks,
+    entities,
+    slots: entities,
+    decorative: 0,
+  };
+}
+function id(e) {
+  return e.id || e.nbt?.id || "";
+}
+function empty(e) {
+  return !e.Item && !e.nbt?.Item;
+}
+export function readTemplate(bytes, kind = "item_frame") {
+  let n = parseNBT(bytes),
+    t = n.value || n;
+  let t2 = {
+    size: t.size,
+    palette: t.palette,
+    blocks: t.blocks,
+    entities: t.entities || [],
+    kind,
+  };
+  if (
+    !Array.isArray(t2.size) ||
+    !t2.palette ||
+    !t2.blocks ||
+    !Array.isArray(t2.entities)
+  )
+    throw Error("Template must contain size, palette, blocks and entities");
+  let slots =
+    kind === "armor_stand"
+      ? t2.entities.filter((e) => id(e) === "minecraft:armor_stand")
+      : t2.entities.filter(
+          (e) => /item_frame|glow_item_frame$/.test(id(e)) && empty(e),
+        );
+  return { ...t2, slots, decorative: t2.entities.length - slots.length };
+}
+export function serializeTemplate(t) {
+  return writeNBT(t);
+}
+
+export function isPavilionFile(file) {
+  return /_pavilion\.nbt$/i.test(file.split('/').pop() || file);
+}

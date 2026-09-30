@@ -80,17 +80,15 @@ async function region(chunks){
   return new Uint8Array([...(Array.from(header)),...([...records.values()].flatMap(record=>Array.from(record.data)))]);
 }
 
-function navigationFiles(groups,template){
-  const points=groups.map((group,index)=>({title:group.title,x:index*100,z:0}));
-  const galleryY=100;
+function navigationFiles(points){
   const quote=value=>JSON.stringify(String(value)),component=(value,options={})=>`{text:${quote(value)},${Object.entries(options).map(([key,item])=>`${key}:${key==='click_event'?item:typeof item==='string'?quote(item):item}`).join(',')}}`,pages=[];
   for(let start=0;start<points.length;start+=3){
     const slice=points.slice(start,start+3),parts=[quote(''),component('Навигация по галерее\n\n',{bold:true,color:'dark_aqua'})];
-    for(const point of slice)parts.push(component(`[ ${point.title} ]\n`,{color:'green',bold:true,underlined:true,click_event:`{action:"run_command",command:${quote(`trigger gallery_nav set ${points.indexOf(point)+1}`)}}`}),component(`X ${point.x} Y ${galleryY} Z ${point.z}\n\n`,{color:'gray'}));
+    for(const point of slice)parts.push(component(`[ ${point.title} ]\n`,{color:'green',bold:true,underlined:true,click_event:`{action:"run_command",command:${quote(`trigger gallery_nav set ${points.indexOf(point)+1}`)}}`}),component(`X ${point.x} Y ${point.y} Z ${point.z}\n\n`,{color:'gray'}));
     pages.push(`[${parts.join(',')}]`);
   }
   const book=`give @s minecraft:written_book[minecraft:written_book_content={pages:[${pages.join(',')}],author:"Custom Item Gallery",title:{raw:"Навигация"},resolved:true}]`;
-  const teleports=points.map((point,index)=>`execute as @a[scores={gallery_nav=${index+1}}] run tp @s ${point.x} ${galleryY} ${point.z}`).join('\n');
+  const teleports=points.map((point,index)=>`execute as @a[scores={gallery_nav=${index+1}}] run tp @s ${point.x} ${point.y} ${point.z}`).join('\n');
   return [
     {name:'datapacks/gallery_navigation/pack.mcmeta',data:new TextEncoder().encode(JSON.stringify({pack:{pack_format:71,description:'Custom Item Gallery navigation'}},null,2))},
     {name:'datapacks/gallery_navigation/data/minecraft/tags/function/load.json',data:new TextEncoder().encode(JSON.stringify({values:['gallery:load']}))},
@@ -101,19 +99,49 @@ function navigationFiles(groups,template){
   ];
 }
 
+function addTemplate(template,origin,variantForSlot,blocks,entities,serial){
+  for(const source of template.blocks){const p=source.pos||source.Position,x=origin[0]+p[0],y=origin[1]+p[1],z=origin[2]+p[2];blocks.set(`${x},${z},${y}`,{x,y,z,block:template.palette[source.state||0]})}
+  for(const source of template.entities){const slot=template.slots.indexOf(source),variant=slot>=0?variantForSlot?.(slot):null;if(slot>=0&&variantForSlot&&!variant)continue;const entity=cloneEntity(source,origin,variant,serial.value++);if(!entity)continue;const cx=floor(entity.Pos[0],16),cz=floor(entity.Pos[2],16);if(!entities.has(key(cx,cz)))entities.set(key(cx,cz),[]);entities.get(key(cx,cz)).push(entity)}
+}
+
+function pavilionSpawns(pavilion,corridor,config={}){
+  const y=Math.floor((pavilion.size[1]-corridor.size[1])/2),z=Math.floor((pavilion.size[2]-corridor.size[2])/2);
+  const point=(value,fallback)=>Array.isArray(value)?value:[value?.x??fallback[0],value?.y??fallback[1],value?.z??fallback[2]];
+  return {plus:point(config.plus,[pavilion.size[0],y,z]),minus:point(config.minus,[-corridor.size[0],y,z])};
+}
+
 export async function generateWorld(template,variants,settings,onProgress=()=>{}){
   const blocks=new Map(),entities=new Map(),slots=template.slots.length;
   const groups=(settings.groups&&settings.groups.length?settings.groups:[{id:'all',title:'All',variants}]).filter(group=>group.variants?.length);
-  const count=groups.reduce((total,group)=>total+Math.ceil(group.variants.length/slots),0),spacingZ=template.size[2],centerX=Math.floor((template.size[0]-1)/2),centerZ=Math.floor((template.size[2]-1)/2);
-  let serial=1;
-  let complete=0;
-  for(let groupIndex=0;groupIndex<groups.length;groupIndex++){
-    const group=groups[groupIndex],groupSections=Math.ceil(group.variants.length/slots);
-    for(let section=0;section<groupSections;section++){
-      const ox=groupIndex*100-centerX,oz=section*spacingZ-centerZ;
-      for(const source of template.blocks){const p=source.pos||source.Position,x=ox+p[0],y=100+p[1],z=oz+p[2];blocks.set(`${x},${z},${y}`,{x,y,z,block:template.palette[source.state||0]})}
-      for(const source of template.entities){const slot=template.slots.indexOf(source),variant=slot>=0?group.variants[section*slots+slot]:null;if(slot>=0&&!variant)continue;const entity=cloneEntity(source,[ox,100,oz],variant,serial++);if(!entity)continue;const cx=floor(entity.Pos[0],16),cz=floor(entity.Pos[2],16);if(!entities.has(key(cx,cz)))entities.set(key(cx,cz),[]);entities.get(key(cx,cz)).push(entity)}
-      complete++;onProgress(.1+.55*complete/count,`Создание линии ${group.title}: ${section+1}/${groupSections}`);await new Promise(resolve=>setTimeout(resolve,0));
+  const serial={value:1},points=[],galleryY=100;
+  const addProgress=(done,total,label)=>{onProgress(.1+.55*(done/Math.max(1,total)),label)};
+  let count=0,complete=0;
+  if(settings.mode==='single'){
+    count=Math.ceil(groups[0].variants.length/slots);
+    const centerX=Math.floor((template.size[0]-1)/2),centerZ=Math.floor((template.size[2]-1)/2);
+    for(let section=0;section<count;section++){
+      const ox=section*template.size[0]-centerX,origin=[ox,galleryY,-centerZ],group=groups[0];
+      addTemplate(template,origin,slot=>group.variants[section*slots+slot],blocks,entities,serial);
+      complete++;addProgress(complete,count,`Создание коридора: ${section+1}/${count}`);await new Promise(resolve=>setTimeout(resolve,0));
+    }
+    points.push({title:'Все предметы',x:0,y:galleryY,z:0});
+  } else {
+    const pavilion=settings.pavilion,spacing=settings.pavilionSpacing||200,pavilions=Math.ceil(groups.length/2);
+    if(!pavilion)throw Error('Для режима павильонов не выбран pavilion template');
+    const corridor=settings.corridorTemplate||template,pavilionKey=settings.pavilionKey||pavilion.file||'default',spawns=pavilionSpawns(pavilion.template||pavilion,corridor,settings.pavilionConfig?.templates?.[pavilionKey]);
+    count=pavilions+groups.reduce((total,group)=>total+Math.ceil(group.variants.length/slots),0);
+    for(let pavilionIndex=0;pavilionIndex<pavilions;pavilionIndex++){
+      const pavilionTemplate=pavilion.template||pavilion,pavOrigin=[-Math.floor((pavilionTemplate.size[0]-1)/2),galleryY,pavilionIndex*spacing-Math.floor((pavilionTemplate.size[2]-1)/2)];
+      addTemplate(pavilionTemplate,pavOrigin,null,blocks,entities,serial);complete++;addProgress(complete,count,`Создание павильона ${pavilionIndex+1}/${pavilions}`);
+      for(const side of [0,1]){
+        const group=groups[pavilionIndex*2+side];if(!group)continue;
+        const direction=side===0?-1:1,spawn=side===0?spawns.minus:spawns.plus,sections=Math.ceil(group.variants.length/slots),base=[pavOrigin[0]+spawn[0],pavOrigin[1]+spawn[1],pavOrigin[2]+spawn[2]];
+        points.push({title:group.title,x:base[0]+Math.floor((corridor.size[0]-1)/2),y:base[1]+Math.max(1,Math.floor((corridor.size[1]-1)/2)),z:base[2]+Math.floor((corridor.size[2]-1)/2)});
+        for(let section=0;section<sections;section++){
+          const origin=[base[0]+direction*section*corridor.size[0],base[1],base[2]];
+          addTemplate(corridor,origin,slot=>group.variants[section*slots+slot],blocks,entities,serial);complete++;addProgress(complete,count,`Создание коридора ${group.title}: ${section+1}/${sections}`);await new Promise(resolve=>setTimeout(resolve,0));
+        }
+      }
     }
   }
   const chunks=new Map(),entityChunks=new Map();
@@ -127,6 +155,6 @@ export async function generateWorld(template,variants,settings,onProgress=()=>{}
   const level={Data:{DataVersion:4325,version:19133,LevelName:settings.name,GameType:1,hardcore:0,Difficulty:0,SpawnX:0,SpawnY:100,SpawnZ:0,Time:6000n,LastPlayed:BigInt(Date.now()),generatorName:'flat',generatorVersion:1,WorldGenSettings:{bonus_chest:false,seed:1n,dimensions:{'minecraft:overworld':{type:'minecraft:overworld',generator:{type:'minecraft:flat',settings:{layers:[{block:{Name:'minecraft:bedrock'},height:1},{block:{Name:'minecraft:dirt'},height:2},{block:{Name:'minecraft:grass_block'},height:1}],biome:'minecraft:plains',lakes:false,features:false}}}}},GameRules:{doDaylightCycle:'false',doWeatherCycle:'false',doMobSpawning:'false'}}};
   files.push({name:'level.dat',data:await gzip(writeNBT(level))});
   const root=(settings.name||'Custom Item Gallery').replace(/[\\/:*?"<>|]/g,' ').trim().replace(/\s+/g,'_')||'CustomItemGallery';
-  files.push(...navigationFiles(groups,template));
+  if(settings.mode!=='single')files.push(...navigationFiles(points));
   const archiveFiles=files.map(file=>({...file,name:`${root}/${file.name}`}));onProgress(1,'Готово');return {zip:writeZip(archiveFiles),sections:count,files:archiveFiles};
 }

@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "templates": [
+    {"file":"templates/item_frame/test.nbt","preview":"templates_preview/item_frame/test.gif","kind":"item_frame"},
+    {"file":"templates/item_frame/ksepsp.nbt","preview":"templates_preview/item_frame/ksepsp.gif","kind":"item_frame"},
+    {"file":"templates/armor_stand/test.nbt","preview":"templates_preview/armor_stand/test.gif","kind":"armor_stand"}
+  ],
+  "pavilions": []
+}
