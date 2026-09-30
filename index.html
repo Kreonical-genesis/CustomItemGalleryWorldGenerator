@@ -26,14 +26,6 @@
             class="secondary">Загрузить тестовый pack</button><small id="devStatus">Локальный fixture не попадает в git.</small></div>
         <div id="packStats" class="stats-grid hidden"></div>
       </div>
-      <div class="panel-header">2 · Шаблон</div>
-      <div class="panel-content template-panel">
-        <fieldset class="mode-options"><legend>Режим генерации</legend><label><input type="radio" name="layoutMode" value="pavilions" checked> Categories + Pavilions</label><label><input type="radio" name="layoutMode" value="single"> Single Corridor</label></fieldset>
-        <div class="template-picker"><div id="templateCards" class="templates"></div></div><label id="customTemplateUpload" class="upload"><input id="templateInput" type="file"
-            accept=".nbt,application/octet-stream">＋ Загрузить свой template.nbt</label>
-        <div id="templateInfo" class="info">Загрузка шаблонов...</div>
-        <div class="template-inspector"><section class="inspector-card inspector-preview"><div class="inspector-title">ПРЕВЬЮ СТРУКТУРЫ</div><div id="selectedTemplatePreview" class="selected-template-preview"></div></section><section class="inspector-card inspector-info"><div class="inspector-title">ПАРАМЕТРЫ</div><div id="selectedTemplateInfo" class="selected-template-info"></div></section></div>
-      </div>
       <div class="panel-header">3 · Мир</div>
       <div class="panel-content"><label class="field-label">Название мира<input id="worldName"
              value="Галерея кастомных предметов"></label>
@@ -46,6 +38,12 @@
       </div>
       <footer>Everything is processed locally.<br>Your resource pack is never uploaded.</footer>
     </aside>
+    <aside class="template-inspector"><div class="panel-header">2 · Template</div><div class="panel-content template-panel">
+      <fieldset class="mode-options"><legend>Режим генерации</legend><label><input type="radio" name="layoutMode" value="pavilions" checked> Categories + Pavilions</label><label><input type="radio" name="layoutMode" value="single"> Single Corridor</label></fieldset>
+      <div class="template-picker"><div id="templateCards" class="templates"></div></div><label id="customTemplateUpload" class="upload"><input id="templateInput" type="file" accept=".nbt,application/octet-stream">＋ Загрузить свой template.nbt</label>
+      <div id="templateInfo" class="info">Загрузка шаблонов...</div>
+      <div class="template-details"><section class="inspector-card inspector-preview"><div class="inspector-title">ПРЕВЬЮ СТРУКТУРЫ</div><div id="selectedTemplatePreview" class="selected-template-preview"></div></section><section class="inspector-card inspector-info"><div class="inspector-title">ПАРАМЕТРЫ</div><div id="selectedTemplateInfo" class="selected-template-info"></div></section></div>
+    </div></aside>
     <section class="workspace">
       <div class="workspace-head">
         <div>
